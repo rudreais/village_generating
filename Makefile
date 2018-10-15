@@ -1,10 +1,10 @@
 RM	=	rm -f
 
-CFLAGS	=	-g3 -W -Wall -Wextra
+CFLAGS	=	-g3 -W -Wall -Wextra -I include
 
 CSFML	=	-lc_graph_prog
 
-SRC	=	main.c
+SRC	=	src/main.c
 
 OBJ	=	$(SRC:.c=.o)
 

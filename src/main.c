@@ -18,6 +18,7 @@ void init_generator_props(generator_props *props)
 
 void run_generator(generator_props *props)
 {
+	(void) props;
 }
 
 void render_houses(void)
@@ -29,6 +30,7 @@ int main(void)
 	node main_node = {.parent = NULL, .coord = {.x = 4, .y = 4}};
 	generator_props props;
 	
+	(void) main_node;
 	init_generator_props(&props);
 	printf("nb_slices=%d\n", props.nb_slices);
 	return 0;
