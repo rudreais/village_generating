@@ -21,6 +21,7 @@ typedef struct {
 	interval2f lens;
 	interval2f bending;
 	interval2i childs;
+	int graph_size;
 } generator_props;
 
 typedef struct {

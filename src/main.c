@@ -53,19 +53,19 @@ node **run_generator(generator_props *props)
 	int count = 0;
 
 	// slices
-	for (unsigned int i = 0, graph_size = 0; i < props->nb_slices; i++) {
+	for (unsigned int i = 0; i < props->nb_slices; i++) {
 		printf("slice=%d\n---------\n", i);
 		childs_per_slices = 0;
 		// parents
 		for (unsigned int j = 0, tmp_childs = 0; j < parents_per_slices; j++) {
 			tmp_childs = (rand() % (props->childs.max - props->childs.min)) + props->childs.min;
 			childs_per_slices += tmp_childs;
-			graph_size += childs_per_slices;
-			nodes = realloc(nodes, sizeof(node *) * graph_size);
+			nodes = realloc(nodes, sizeof(node *) * (count + tmp_childs + 1));
+			nodes[count + tmp_childs] = NULL;
 			// childs
 			for (unsigned int k = 0; k < tmp_childs; k++) {
 				nodes[count] = malloc(sizeof(node));
-				nodes[count++]->size = 5.0f;
+				nodes[count++]->size = (float) count;
 				printf("parents=%d\nchild=%d\n", j, k);
 			}
 		}
@@ -75,6 +75,7 @@ node **run_generator(generator_props *props)
 		if (props->childs.max > 1)
 			props->childs.max--;
 	}
+	props->graph_size = count;
 	return nodes;
 }
 
@@ -90,6 +91,8 @@ int main(void)
 	init_generator_props(&props);
 	nodes = run_generator(&props);
 	printf("nb_slices=%d\n", props.nb_slices);
-	printf("%f\n", nodes[1]->size);
+	for (int i = 0; nodes[i] != NULL; i++)
+		printf("%f\n", nodes[i]->size);
+	printf("%d\n", props.graph_size);
 	return 0;
 }
