@@ -26,7 +26,7 @@ void render_houses(void)
 
 int main(void)
 {
-	node main = {.parent = NULL, .coord = {.x = 4, .y = 4}};
+	node main_node = {.parent = NULL, .coord = {.x = 4, .y = 4}};
 	generator_props props;
 	
 	init_generator_props(&props);
