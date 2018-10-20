@@ -2,7 +2,7 @@ RM	=	rm -f
 
 CFLAGS	=	-g3 -W -Wall -Wextra -I include
 
-CSFML	=	-lc_graph_prog
+CSFML	=	-lcsfml-window -lcsfml-graphics
 
 SRC	=	src/main.c
 
