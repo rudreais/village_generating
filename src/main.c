@@ -1,98 +1,119 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "vill_gen.h"
 
-void render_houses(render_props *rendering)
+void render_town(render_props *rprops, const town *input_town)
 {
 	sfEvent event;
-	sfCircleShape *shape = sfCircleShape_create();
+	sfRectangleShape *shape = sfRectangleShape_create();
 	float radius = 100;
-	sfVector2f origin = {rendering->mode.width / 2 - radius, rendering->mode.height / 2 - radius};
+	const sfVector2f origin = {rprops->mode.width / 2 - radius, rprops->mode.height / 2 - radius};
+	sfRectangleShape_setFillColor(shape, sfRed);
 
-	sfCircleShape_setFillColor(shape, sfRed);
-	sfCircleShape_setPosition(shape, origin);
-	sfCircleShape_setRadius(shape, radius);
-	while (sfRenderWindow_isOpen(rendering->window)) {
-		while (sfRenderWindow_pollEvent(rendering->window, &event))
+	//sfRenderWindow_clear(rprops->window, sfWhite);
+	while (sfRenderWindow_isOpen(rprops->window))
+	{
+		while (sfRenderWindow_pollEvent(rprops->window, &event))
 			if (event.type == sfEvtClosed)
-				sfRenderWindow_close(rendering->window);
-		sfRenderWindow_clear(rendering->window, sfWhite);
-		// printing circles
-		// machin(rendering,
-		sfRenderWindow_drawCircleShape(rendering->window, shape, NULL);
-		sfRenderWindow_display(rendering->window);
+				sfRenderWindow_close(rprops->window);
+	
+		for(size_t i=0; i < input_town->count_houses; i++) {
+			sfVector2f globalPos = (sfVector2f) {
+				.x = origin.x + input_town->houses[i].coords.x,
+				.y = origin.y + input_town->houses[i].coords.y
+			};
+			sfRectangleShape_setPosition(shape, globalPos);
+			sfRectangleShape_setSize(shape, input_town->houses[i].dims);
+			sfRenderWindow_drawRectangleShape(rprops->window, shape, NULL);
+			sfRenderWindow_display(rprops->window);
+		}
 	}
+	// TODO: free(...)
 }
 
-void init_generator_props(generator_props *props)
+void init_generator_props(generator_init_params *props)
 {
-	*props = (generator_props) {
-		.nb_slices = 5,
-		.nb_houses = -1,
-		.lens = {
+	*props = (generator_init_params) {
+		.distrib_lens = {
 			.min = 1.0f,
 			.max = 5.0f
 		},
-		.bending = {
+		.distrib_bending = {
 			.min = 1.0f,
 			.max = 5.0f
 		},
-		.childs = {
+		.distrib_childs = {
 			.min = 4,
 			.max = 6
-		}
+		},
+		.total_nb_slices = 3
 	};
 }
 
-node **run_generator(generator_props *props)
+void run_generator(const generator_init_params *ip, town* output_town)
 {
-	node main_node = {.parent = NULL, .coord = {.x = 0, .y = 0}};
-	node **nodes = NULL;
-	unsigned int parents_per_slices = 1;
-	unsigned int childs_per_slices;
-	int count = 0;
+	// Init generator parameters (simple copy for now)
+	generator_exec_params ep;
+	ep.distrib_bending = ip->distrib_bending;
+	ep.distrib_lens = ip->distrib_lens;
+	ep.distrib_childs = ip->distrib_childs;
 
-	// slices
-	for (unsigned int i = 0; i < props->nb_slices; i++) {
-		printf("slice=%d\n---------\n", i);
-		childs_per_slices = 0;
-		// parents
-		for (unsigned int j = 0, tmp_childs = 0; j < parents_per_slices; j++) {
-			tmp_childs = (rand() % (props->childs.max - props->childs.min)) + props->childs.min;
-			childs_per_slices += tmp_childs;
-			nodes = realloc(nodes, sizeof(node *) * (count + tmp_childs + 1));
-			nodes[count + tmp_childs] = NULL;
-			// childs
-			for (unsigned int k = 0; k < tmp_childs; k++) {
-				nodes[count] = malloc(sizeof(node));
-				nodes[count++]->size = (float) count;
-				printf("parents=%d\nchild=%d\n", j, k);
+	output_town->count_houses = 1;
+	output_town->houses = malloc(sizeof(town));
+	output_town->houses[0] = (house_node) {
+		.parent = NULL, 
+		.coords = {.x = 0, .y = 0},
+		.dims = {.x = 0.2f, .y = 0.2f}
+	};
+	ep.count_slices = 1;
+	ep.nb_parents_per_slice = 1;
+
+	size_t current_parent_idx = 0;
+	for (size_t i = 0; i < ip->total_nb_slices; i++) // slices
+	{ 
+		printf("##### slice n°%zu #####\n", i);
+		ep.nb_childs_per_parent = (rand() % (ep.distrib_childs.max - ep.distrib_childs.min)) + ep.distrib_childs.min;
+		for (size_t j = 0; j < ep.nb_parents_per_slice; j++) // parents 
+		{ 
+			printf("current_parent_idx=%zu\n", current_parent_idx);
+			printf("nb_childs_per_parent=%zu\n", ep.nb_childs_per_parent);
+			size_t alloc_size = sizeof(house_node) * (output_town->count_houses + ep.nb_childs_per_parent * ep.nb_parents_per_slice);
+			output_town->houses = realloc(output_town->houses, alloc_size);
+
+			for (size_t k = 0; k < ep.nb_childs_per_parent; k++) // childs
+			{
+				output_town->houses[output_town->count_houses] = (house_node) {
+					.parent = &output_town->houses[current_parent_idx],
+					.coords = { .x=0.0f , .y=0.0f },
+					.dims = { .x=0.2f , .y=0.2f }
+				};
+				output_town->count_houses++;
 			}
+			current_parent_idx++;
+			printf("--------------\n");
 		}
-		parents_per_slices = childs_per_slices;
-		if (props->childs.min > 1)
-			props->childs.min--;
-		if (props->childs.max > 1)
-			props->childs.max--;
+		ep.nb_parents_per_slice = ep.nb_parents_per_slice * ep.nb_childs_per_parent;
+		ep.distrib_childs.max -= (ep.distrib_childs.max > 1) ? 1 : 0;
+		ep.distrib_childs.min -= (ep.distrib_childs.min > 1) ? 1 : 0;
 	}
-	props->graph_size = count;
-	return nodes;
 }
 
 int main(void)
 {
-	generator_props props;
-	render_props rendering;
-	sfVideoMode mode = {1024, 1024, 32};
-	node **nodes;
+	// initialize random number generator
+	srand(time(NULL));
 
-	rendering.mode = mode;
-	// rendering.window = sfRenderWindow_create(mode, "Village Generation", sfClose, NULL);
-	init_generator_props(&props);
-	nodes = run_generator(&props);
-	printf("nb_slices=%d\n", props.nb_slices);
-	for (int i = 0; nodes[i] != NULL; i++)
-		printf("%f\n", nodes[i]->size);
-	printf("%d\n", props.graph_size);
+	render_props rprops;
+	rprops.mode = (sfVideoMode) {512, 512, 32};
+	rprops.window = sfRenderWindow_create(rprops.mode, "Village Generation", sfClose, NULL);
+	
+	generator_init_params gprops; town my_town;
+	init_generator_props(&gprops);
+	run_generator(&gprops, &my_town);
+	render_town(&rprops, &my_town);
+
+	// TODO: free(...)
+
 	return 0;
 }

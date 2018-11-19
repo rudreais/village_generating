@@ -4,6 +4,7 @@
 #pragma once
 
 #include <SFML/Graphics.h>
+#include <stdint.h>
 
 typedef struct {
 	float min;
@@ -16,25 +17,41 @@ typedef struct {
 } interval2i;
 
 typedef struct {
-	unsigned int nb_slices;
-	int nb_houses;
-	interval2f lens;
-	interval2f bending;
-	interval2i childs;
-	int graph_size;
-} generator_props;
+	uint32_t min;
+	uint32_t max;
+} interval2ui;
+
+typedef struct {
+	interval2f distrib_bending;
+	interval2f distrib_lens;
+	interval2ui distrib_childs;
+	size_t total_nb_slices;
+} generator_init_params;
+
+typedef struct {
+	interval2f distrib_bending;
+	interval2f distrib_lens;
+	interval2ui distrib_childs;
+	size_t nb_parents_per_slice;
+	size_t nb_childs_per_parent;
+	size_t count_slices;
+} generator_exec_params;
 
 typedef struct {
 	sfVideoMode mode;
 	sfRenderWindow *window;
 } render_props;
 
-typedef struct node_params node;
-
-struct node_params {
-	node *parent;
-	sfVector2f coord;
-	float size;
+typedef struct house_node house_node;
+struct house_node {
+	house_node *parent;
+	sfVector2f coords;
+	sfVector2f dims;
 };
+
+typedef struct town {
+	size_t count_houses;
+	house_node* houses;
+} town;
 
 #endif /* VILL_GEN_H_ */
