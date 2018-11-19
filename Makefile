@@ -1,6 +1,6 @@
 RM	=	rm -f
 
-CFLAGS	=	-g3 -W -Wall -Wextra -I include
+CFLAGS	=	-g3 -W -Wall -Wextra -I include -fdiagnostics-color=auto
 
 #CSFML   =       -lcsfml-window -lcsfml-graphics
 CSFML	=	-lc_graph_prog
