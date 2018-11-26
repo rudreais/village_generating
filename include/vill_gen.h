@@ -25,6 +25,7 @@ typedef struct {
 	interval2f distrib_bending;
 	interval2f distrib_distance_scale;
 	interval2ui distrib_childs;
+	interval2f distrib_dims_scale;
 	size_t total_nb_slices;
 } generator_init_params;
 
@@ -32,6 +33,7 @@ typedef struct {
 	interval2f distrib_bending;
 	interval2f distrib_distance_scale;
 	interval2ui distrib_childs;
+	interval2f distrib_dims_scale;
 	size_t nb_parents_per_slice;
 	size_t nb_childs_per_parent;
 	size_t count_slices;

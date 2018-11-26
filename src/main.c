@@ -56,12 +56,16 @@ void init_generator_props(generator_init_params *props)
 			.max = M_PI
 		},
 		.distrib_distance_scale = {
-			.min = 1.0,
-			.max = 1.5
+			.min = 0.9,
+			.max = 1.3
 		},
 		.distrib_childs = {
 			.min = 4,
 			.max = 6
+		},
+		.distrib_dims_scale = {
+			.min = 0.7,
+			.max = 1.1
 		},
 		.total_nb_slices = 3
 	};
@@ -73,6 +77,7 @@ void run_generator(const generator_init_params *ip, town* output_town)
 	generator_exec_params ep;
 	ep.distrib_bending = ip->distrib_bending;
 	ep.distrib_distance_scale = ip->distrib_distance_scale;
+	ep.distrib_dims_scale = ip->distrib_dims_scale;
 	ep.distrib_childs = ip->distrib_childs;
 
 	output_town->count_houses = 1;
@@ -80,9 +85,9 @@ void run_generator(const generator_init_params *ip, town* output_town)
 	output_town->houses[0] = (house_node) {
 		.parent = NULL,
 		.alpha = 0.0,
-		.distance = 30.0,
+		.distance = 60.0,
 		.coords = {.x = 0, .y = 0},
-		.dims = {.x = 0.2f, .y = 0.2f}
+		.dims = {.x = 30.0f, .y = 30.0f}
 	};
 	ep.count_slices = 1;
 	ep.nb_parents_per_slice = 1;
@@ -101,9 +106,14 @@ void run_generator(const generator_init_params *ip, town* output_town)
 
 			for (size_t k = 0; k < ep.nb_childs_per_parent; k++) // childs
 			{
+				float dims_scale_x = ( (float)rand() / (float)RAND_MAX * ( ep.distrib_dims_scale.max - ep.distrib_dims_scale.min) ) + ep.distrib_dims_scale.min;
+				float dims_scale_y = ( (float)rand() / (float)RAND_MAX * ( ep.distrib_dims_scale.max - ep.distrib_dims_scale.min) ) + ep.distrib_dims_scale.min;
 				output_town->houses[output_town->count_houses] = (house_node) {
 					.parent = &output_town->houses[current_parent_idx],
-					.dims = { .x = 10.0f, .y = 10.0f }
+					.dims = { 
+						.x = output_town->houses[current_parent_idx].dims.x * dims_scale_x,
+					       	.y = output_town->houses[current_parent_idx].dims.y * dims_scale_y
+					}
 				};
 				computeHouseCoords(&ep, &output_town->houses[current_parent_idx], &output_town->houses[output_town->count_houses]);
 				output_town->count_houses++;
