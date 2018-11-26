@@ -7,27 +7,29 @@ void render_town(render_props *rprops, const town *input_town)
 {
 	sfEvent event;
 	sfRectangleShape *shape = sfRectangleShape_create();
-	float radius = 100;
-	const sfVector2f origin = {rprops->mode.width / 2 - radius, rprops->mode.height / 2 - radius};
+	const sfVector2f origin = {rprops->mode.width / 2, rprops->mode.height / 2};
 	sfRectangleShape_setFillColor(shape, sfRed);
 
-	//sfRenderWindow_clear(rprops->window, sfWhite);
+	sfRenderWindow_clear(rprops->window, sfWhite);
+	for(size_t i=0; i < input_town->count_houses; i++) {
+		sfVector2f globalPos = (sfVector2f) {
+			.x = origin.x + input_town->houses[i].coords.x - input_town->houses[i].dims.x,
+			.y = origin.y + input_town->houses[i].coords.y - input_town->houses[i].dims.y
+		};
+		printf("=== House n°%zu\n", i);
+		printf("pos %f %f\n", input_town->houses[i].coords.x, input_town->houses[i].coords.y);
+		printf("dims %f %f\n", input_town->houses[i].dims.x, input_town->houses[i].dims.y);
+		sfRectangleShape_setPosition(shape, globalPos);
+		sfRectangleShape_setSize(shape, input_town->houses[i].dims);
+		sfRenderWindow_drawRectangleShape(rprops->window, shape, NULL);
+	}
+	sfRenderWindow_display(rprops->window);
+
 	while (sfRenderWindow_isOpen(rprops->window))
 	{
 		while (sfRenderWindow_pollEvent(rprops->window, &event))
 			if (event.type == sfEvtClosed)
 				sfRenderWindow_close(rprops->window);
-	
-		for(size_t i=0; i < input_town->count_houses; i++) {
-			sfVector2f globalPos = (sfVector2f) {
-				.x = origin.x + input_town->houses[i].coords.x,
-				.y = origin.y + input_town->houses[i].coords.y
-			};
-			sfRectangleShape_setPosition(shape, globalPos);
-			sfRectangleShape_setSize(shape, input_town->houses[i].dims);
-			sfRenderWindow_drawRectangleShape(rprops->window, shape, NULL);
-			sfRenderWindow_display(rprops->window);
-		}
 	}
 	// TODO: free(...)
 }
@@ -86,7 +88,7 @@ void run_generator(const generator_init_params *ip, town* output_town)
 				output_town->houses[output_town->count_houses] = (house_node) {
 					.parent = &output_town->houses[current_parent_idx],
 					.coords = { .x=0.0f , .y=0.0f },
-					.dims = { .x=0.2f , .y=0.2f }
+					.dims = { .x=10.0f , .y=10.0f }
 				};
 				output_town->count_houses++;
 			}
