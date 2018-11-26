@@ -53,7 +53,7 @@ void init_generator_props(generator_init_params *props)
 	*props = (generator_init_params) {
 		.distrib_bending = {
 			.min = 0.0f,
-			.max = 0.5f
+			.max = M_PI
 		},
 		.distrib_distance_scale = {
 			.min = 1.0,
@@ -78,7 +78,9 @@ void run_generator(const generator_init_params *ip, town* output_town)
 	output_town->count_houses = 1;
 	output_town->houses = malloc(sizeof(house_node));
 	output_town->houses[0] = (house_node) {
-		.parent = NULL, 
+		.parent = NULL,
+		.alpha = 0.0,
+		.distance = 30.0,
 		.coords = {.x = 0, .y = 0},
 		.dims = {.x = 0.2f, .y = 0.2f}
 	};
@@ -101,9 +103,9 @@ void run_generator(const generator_init_params *ip, town* output_town)
 			{
 				output_town->houses[output_town->count_houses] = (house_node) {
 					.parent = &output_town->houses[current_parent_idx],
-					.coords = { .x=0.0f , .y=0.0f },
-					.dims = { .x=10.0f , .y=10.0f }
+					.dims = { .x = 10.0f, .y = 10.0f }
 				};
+				computeHouseCoords(&ep, &output_town->houses[current_parent_idx], &output_town->houses[output_town->count_houses]);
 				output_town->count_houses++;
 			}
 			current_parent_idx++;
