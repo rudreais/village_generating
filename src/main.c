@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include "vill_gen.h"
 
 void render_town(render_props *rprops, const town *input_town)
@@ -34,16 +35,29 @@ void render_town(render_props *rprops, const town *input_town)
 	// TODO: free(...)
 }
 
+void computeHouseCoords(generator_exec_params* ep, const house_node* parent, house_node* current) 
+{
+	float distance_scale = ( (float)rand() / (float)RAND_MAX * ( ep->distrib_distance_scale.max - ep->distrib_distance_scale.min) ) + ep->distrib_distance_scale.min;
+	current->distance = parent->distance * distance_scale;
+
+	float angle_deviation = ( (float)rand() / (float)RAND_MAX * ( ep->distrib_bending.max - ep->distrib_bending.min) ) + ep->distrib_bending.min;
+	current->alpha = parent->alpha + angle_deviation;
+
+	// convert polar coordinates to euclidean coordinates
+	current->coords.x = parent->coords.x + (float)cos(current->alpha) * current->distance;
+	current->coords.y = parent->coords.y + (float)sin(current->alpha) * current->distance;
+}
+
 void init_generator_props(generator_init_params *props)
 {
 	*props = (generator_init_params) {
-		.distrib_lens = {
-			.min = 1.0f,
-			.max = 5.0f
-		},
 		.distrib_bending = {
-			.min = 1.0f,
-			.max = 5.0f
+			.min = 0.0f,
+			.max = 0.5f
+		},
+		.distrib_distance_scale = {
+			.min = 1.0,
+			.max = 1.5
 		},
 		.distrib_childs = {
 			.min = 4,
@@ -58,11 +72,11 @@ void run_generator(const generator_init_params *ip, town* output_town)
 	// Init generator parameters (simple copy for now)
 	generator_exec_params ep;
 	ep.distrib_bending = ip->distrib_bending;
-	ep.distrib_lens = ip->distrib_lens;
+	ep.distrib_distance_scale = ip->distrib_distance_scale;
 	ep.distrib_childs = ip->distrib_childs;
 
 	output_town->count_houses = 1;
-	output_town->houses = malloc(sizeof(town));
+	output_town->houses = malloc(sizeof(house_node));
 	output_town->houses[0] = (house_node) {
 		.parent = NULL, 
 		.coords = {.x = 0, .y = 0},

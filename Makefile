@@ -2,8 +2,8 @@ RM	=	rm -f
 
 CFLAGS	=	-g3 -W -Wall -Wextra -I include -fdiagnostics-color=auto
 
-#CSFML   =       -lcsfml-window -lcsfml-graphics
-CSFML	=	-lc_graph_prog
+#LIBS   =       -lcsfml-window -lcsfml-graphics
+LIBS	=	-lm -lc_graph_prog
 
 SRC	=	src/main.c
 
@@ -14,7 +14,7 @@ EXEC	=	vill_gen
 all:		$(EXEC)
 
 $(EXEC):	$(OBJ)
-		$(CC) $(OBJ) -o $(EXEC) $(CSFML)
+		$(CC) $(OBJ) -o $(EXEC) $(LIBS)
 
 clean:
 	$(RM) $(OBJ)
